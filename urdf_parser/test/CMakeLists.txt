@@ -18,6 +18,10 @@ set(tests
      urdf_double_convert.cpp
      urdf_unit_test.cpp
      urdf_version_test.cpp
+     urdf_model_test.cpp
+     urdf_joint_test.cpp
+     urdf_link_test.cpp
+     urdf_error_test.cpp
 )
 
 #################################################
