@@ -22,6 +22,8 @@ set(tests
      urdf_joint_test.cpp
      urdf_link_test.cpp
      urdf_error_test.cpp
+     urdf_pose_advanced_test.cpp
+     urdf_joint_dynamics_test.cpp
 )
 
 #################################################
