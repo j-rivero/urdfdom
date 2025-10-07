@@ -37,6 +37,18 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# Code coverage support
+option(ENABLE_COVERAGE "Enable code coverage" OFF)
+if(ENABLE_COVERAGE)
+  if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-g -O0 --coverage -fprofile-arcs -ftest-coverage)
+    add_link_options(--coverage)
+    message(STATUS "Code coverage enabled")
+  else()
+    message(WARNING "Code coverage is only supported with GCC or Clang")
+  endif()
+endif()
+
 # This shouldn't be necessary, but there has been trouble
 # with MSVC being set off, but MSVCXX ON.
 if(MSVC OR MSVC90 OR MSVC10)
@@ -105,6 +117,35 @@ configure_file(
   "${PROJECT_BINARY_DIR}/uninstall.cmake" IMMEDIATE @ONLY)
 add_custom_target(uninstall
   "${CMAKE_COMMAND}" -P "${PROJECT_BINARY_DIR}/uninstall.cmake")
+
+# Coverage targets
+if(ENABLE_COVERAGE)
+  # Coverage reset target
+  add_custom_target(coverage-reset
+    COMMAND lcov --directory . --zerocounters
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Resetting coverage counters"
+  )
+
+  # Coverage data collection and HTML report generation
+  add_custom_target(coverage
+    COMMAND lcov --directory . --capture --output-file coverage.info --ignore-errors mismatch,gcov
+    COMMAND lcov --remove coverage.info '/usr/*' '*/gtest/*' '*/test/*' --output-file coverage_filtered.info --ignore-errors mismatch,gcov
+    COMMAND genhtml coverage_filtered.info --output-directory coverage_html --ignore-errors mismatch
+    COMMAND ${CMAKE_COMMAND} -E echo "Coverage report generated in coverage_html/"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Generating coverage report"
+  )
+
+  # Combined target to run tests and generate coverage
+  add_custom_target(test-coverage
+    COMMAND ${CMAKE_COMMAND} --build . --target coverage-reset
+    COMMAND ${CMAKE_CTEST_COMMAND} -V
+    COMMAND ${CMAKE_COMMAND} --build . --target coverage
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Running tests and generating coverage report"
+  )
+endif()
 
 message(STATUS "Configuration successful. Type make to compile urdfdom")
 
