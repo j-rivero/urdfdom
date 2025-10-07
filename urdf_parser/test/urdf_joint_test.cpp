@@ -22,7 +22,7 @@ protected:
     }
 
     std::string base_urdf_template;
-    
+
     std::string format_urdf(const std::string& joint_xml) {
         char buffer[2048];
         snprintf(buffer, sizeof(buffer), base_urdf_template.c_str(), joint_xml.c_str());
@@ -43,35 +43,35 @@ TEST_F(URDFJointTest, test_parse_revolute_joint)
     <dynamics damping="0.1" friction="0.2"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("revolute_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     EXPECT_EQ(joint->name, "revolute_joint");
     EXPECT_EQ(joint->type, urdf::Joint::REVOLUTE);
     EXPECT_EQ(joint->parent_link_name, "base_link");
     EXPECT_EQ(joint->child_link_name, "child_link");
-    
+
     // Test origin
     EXPECT_FLOAT_EQ(joint->parent_to_joint_origin_transform.position.x, 1.0);
     EXPECT_FLOAT_EQ(joint->parent_to_joint_origin_transform.position.y, 2.0);
     EXPECT_FLOAT_EQ(joint->parent_to_joint_origin_transform.position.z, 3.0);
-    
+
     // Test axis
     EXPECT_FLOAT_EQ(joint->axis.x, 0.0);
     EXPECT_FLOAT_EQ(joint->axis.y, 0.0);
     EXPECT_FLOAT_EQ(joint->axis.z, 1.0);
-    
+
     // Test limits
     ASSERT_TRUE(joint->limits != nullptr);
     EXPECT_FLOAT_EQ(joint->limits->lower, -1.57);
     EXPECT_FLOAT_EQ(joint->limits->upper, 1.57);
     EXPECT_FLOAT_EQ(joint->limits->effort, 100.0);
     EXPECT_FLOAT_EQ(joint->limits->velocity, 2.0);
-    
+
     // Test dynamics
     ASSERT_TRUE(joint->dynamics != nullptr);
     EXPECT_FLOAT_EQ(joint->dynamics->damping, 0.1);
@@ -88,13 +88,13 @@ TEST_F(URDFJointTest, test_parse_continuous_joint)
     <axis xyz="1 0 0"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("continuous_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     EXPECT_EQ(joint->type, urdf::Joint::CONTINUOUS);
     EXPECT_FLOAT_EQ(joint->axis.x, 1.0);
     EXPECT_FLOAT_EQ(joint->axis.y, 0.0);
@@ -112,13 +112,13 @@ TEST_F(URDFJointTest, test_parse_prismatic_joint)
     <limit lower="-0.5" upper="0.5" effort="50" velocity="1"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("prismatic_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     EXPECT_EQ(joint->type, urdf::Joint::PRISMATIC);
     EXPECT_FLOAT_EQ(joint->axis.y, 1.0);
 }
@@ -133,13 +133,13 @@ TEST_F(URDFJointTest, test_parse_fixed_joint)
     <origin xyz="0 0 1"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("fixed_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     EXPECT_EQ(joint->type, urdf::Joint::FIXED);
 }
 
@@ -152,13 +152,13 @@ TEST_F(URDFJointTest, test_parse_floating_joint)
     <child link="child_link"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("floating_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     EXPECT_EQ(joint->type, urdf::Joint::FLOATING);
 }
 
@@ -172,13 +172,13 @@ TEST_F(URDFJointTest, test_parse_planar_joint)
     <axis xyz="0 0 1"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("planar_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     EXPECT_EQ(joint->type, urdf::Joint::PLANAR);
 }
 
@@ -193,13 +193,13 @@ TEST_F(URDFJointTest, test_parse_joint_with_calibration)
     <calibration reference_position="0.5" rising="1" falling="0"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("calibrated_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     // Test calibration - may not be parsed correctly, check if exists first
     if (joint->calibration != nullptr) {
         // Some implementations may not parse reference_position correctly
@@ -218,13 +218,13 @@ TEST_F(URDFJointTest, test_parse_joint_with_safety_controller)
     <safety_controller soft_lower_limit="-0.8" soft_upper_limit="0.8" k_position="100" k_velocity="10"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("safe_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     // Test safety controller
     ASSERT_TRUE(joint->safety != nullptr);
     EXPECT_FLOAT_EQ(joint->safety->soft_lower_limit, -0.8);
@@ -244,13 +244,13 @@ TEST_F(URDFJointTest, test_parse_joint_with_mimic)
     <mimic joint="reference_joint" multiplier="2.0" offset="0.1"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("mimic_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     // Test mimic
     ASSERT_TRUE(joint->mimic != nullptr);
     EXPECT_EQ(joint->mimic->joint_name, "reference_joint");
@@ -267,7 +267,7 @@ TEST_F(URDFJointTest, test_parse_joint_invalid_type)
     <child link="child_link"/>
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     // Should parse but joint type should be UNKNOWN or parsing should fail
     // Behavior depends on implementation - test what actually happens
@@ -287,7 +287,7 @@ TEST_F(URDFJointTest, test_parse_joint_missing_parent_child)
     <!-- Missing parent and child links -->
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     // This should either fail to parse or create joint with empty parent/child
     if (model != nullptr) {
@@ -309,15 +309,61 @@ TEST_F(URDFJointTest, test_parse_joint_default_axis)
     <!-- No axis specified, should default to (1,0,0) -->
   </joint>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("default_axis_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     // Test default axis - should be (1,0,0)
     EXPECT_FLOAT_EQ(joint->axis.x, 1.0);
     EXPECT_FLOAT_EQ(joint->axis.y, 0.0);
     EXPECT_FLOAT_EQ(joint->axis.z, 0.0);
+}
+
+// Test joint limit defaults when lower attribute is missing - covers uncovered line 104-105
+TEST_F(URDFJointTest, test_joint_limit_missing_lower)
+{
+    std::string joint_xml = R"(
+  <joint name="missing_lower_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="child_link"/>
+    <limit upper="1.0" effort="100" velocity="2"/>
+  </joint>
+)";
+
+    urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
+    ASSERT_TRUE(model != nullptr);
+
+    auto joint = model->getJoint("missing_lower_joint");
+    ASSERT_TRUE(joint != nullptr);
+    ASSERT_TRUE(joint->limits != nullptr);
+
+    // Test default lower limit - should be 0
+    EXPECT_FLOAT_EQ(joint->limits->lower, 0.0);
+    EXPECT_FLOAT_EQ(joint->limits->upper, 1.0);
+}
+
+// Test joint limit defaults when upper attribute is missing - covers uncovered line 120-121
+TEST_F(URDFJointTest, test_joint_limit_missing_upper)
+{
+    std::string joint_xml = R"(
+  <joint name="missing_upper_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="child_link"/>
+    <limit lower="-1.0" effort="100" velocity="2"/>
+  </joint>
+)";
+
+    urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(joint_xml));
+    ASSERT_TRUE(model != nullptr);
+
+    auto joint = model->getJoint("missing_upper_joint");
+    ASSERT_TRUE(joint != nullptr);
+    ASSERT_TRUE(joint->limits != nullptr);
+
+    // Test default upper limit - should be 0
+    EXPECT_FLOAT_EQ(joint->limits->lower, -1.0);
+    EXPECT_FLOAT_EQ(joint->limits->upper, 0.0);
 }

@@ -16,7 +16,7 @@ protected:
     }
 
     std::string base_urdf_template;
-    
+
     std::string format_urdf(const std::string& link_xml) {
         char buffer[4096];
         snprintf(buffer, sizeof(buffer), base_urdf_template.c_str(), link_xml.c_str());
@@ -36,10 +36,10 @@ TEST_F(URDFLinkTest, test_parse_basic_link)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("basic_link");
     ASSERT_TRUE(link != nullptr);
     EXPECT_EQ(link->name, "basic_link");
@@ -61,22 +61,22 @@ TEST_F(URDFLinkTest, test_parse_link_with_inertial)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("inertial_link");
     ASSERT_TRUE(link != nullptr);
     ASSERT_TRUE(link->inertial != nullptr);
-    
+
     // Test mass
     EXPECT_FLOAT_EQ(link->inertial->mass, 5.0);
-    
+
     // Test origin
     EXPECT_FLOAT_EQ(link->inertial->origin.position.x, 0.1);
     EXPECT_FLOAT_EQ(link->inertial->origin.position.y, 0.2);
     EXPECT_FLOAT_EQ(link->inertial->origin.position.z, 0.3);
-    
+
     // Test inertia matrix
     EXPECT_FLOAT_EQ(link->inertial->ixx, 1.0);
     EXPECT_FLOAT_EQ(link->inertial->ixy, 0.1);
@@ -102,23 +102,23 @@ TEST_F(URDFLinkTest, test_parse_link_with_collision)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("collision_link");
     ASSERT_TRUE(link != nullptr);
     ASSERT_TRUE(link->collision != nullptr);
-    
+
     // Test collision origin
     EXPECT_FLOAT_EQ(link->collision->origin.position.x, 1.0);
     EXPECT_FLOAT_EQ(link->collision->origin.position.y, 0.0);
     EXPECT_FLOAT_EQ(link->collision->origin.position.z, 0.0);
-    
+
     // Test collision geometry
     ASSERT_TRUE(link->collision->geometry != nullptr);
     EXPECT_EQ(link->collision->geometry->type, urdf::Geometry::CYLINDER);
-    
+
     auto cylinder = dynamic_cast<urdf::Cylinder*>(link->collision->geometry.get());
     ASSERT_TRUE(cylinder != nullptr);
     EXPECT_FLOAT_EQ(cylinder->radius, 0.5);
@@ -143,18 +143,18 @@ TEST_F(URDFLinkTest, test_parse_link_with_multiple_visuals)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("multi_visual_link");
     ASSERT_TRUE(link != nullptr);
     EXPECT_EQ(link->visual_array.size(), 2u);
-    
+
     // Test first visual
     ASSERT_TRUE(link->visual_array[0]->geometry != nullptr);
     EXPECT_EQ(link->visual_array[0]->geometry->type, urdf::Geometry::BOX);
-    
+
     // Test second visual
     ASSERT_TRUE(link->visual_array[1]->geometry != nullptr);
     EXPECT_EQ(link->visual_array[1]->geometry->type, urdf::Geometry::SPHERE);
@@ -182,14 +182,14 @@ TEST_F(URDFLinkTest, test_parse_link_with_multiple_collisions)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("multi_collision_link");
     ASSERT_TRUE(link != nullptr);
     EXPECT_EQ(link->collision_array.size(), 2u);
-    
+
     // Test second collision with name
     EXPECT_EQ(link->collision_array[1]->name, "second_collision");
     EXPECT_FLOAT_EQ(link->collision_array[1]->origin.position.x, 1.0);
@@ -211,15 +211,15 @@ TEST_F(URDFLinkTest, test_parse_link_with_material)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("material_link");
     ASSERT_TRUE(link != nullptr);
     ASSERT_TRUE(link->visual != nullptr);
     ASSERT_TRUE(link->visual->material != nullptr);
-    
+
     EXPECT_EQ(link->visual->material->name, "blue");
     EXPECT_FLOAT_EQ(link->visual->material->color.b, 1.0);
 }
@@ -239,15 +239,15 @@ TEST_F(URDFLinkTest, test_parse_link_with_inline_material)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("inline_material_link");
     ASSERT_TRUE(link != nullptr);
     ASSERT_TRUE(link->visual != nullptr);
     ASSERT_TRUE(link->visual->material != nullptr);
-    
+
     EXPECT_EQ(link->visual->material->name, "green");
     EXPECT_FLOAT_EQ(link->visual->material->color.g, 1.0);
     EXPECT_FLOAT_EQ(link->visual->material->color.a, 0.8);
@@ -265,14 +265,14 @@ TEST_F(URDFLinkTest, test_parse_link_with_sphere_geometry)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("sphere_link");
     ASSERT_TRUE(link != nullptr);
     ASSERT_TRUE(link->visual->geometry != nullptr);
-    
+
     EXPECT_EQ(link->visual->geometry->type, urdf::Geometry::SPHERE);
     auto sphere = dynamic_cast<urdf::Sphere*>(link->visual->geometry.get());
     ASSERT_TRUE(sphere != nullptr);
@@ -291,14 +291,14 @@ TEST_F(URDFLinkTest, test_parse_link_with_mesh_geometry)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("mesh_link");
     ASSERT_TRUE(link != nullptr);
     ASSERT_TRUE(link->visual->geometry != nullptr);
-    
+
     EXPECT_EQ(link->visual->geometry->type, urdf::Geometry::MESH);
     auto mesh = dynamic_cast<urdf::Mesh*>(link->visual->geometry.get());
     ASSERT_TRUE(mesh != nullptr);
@@ -320,7 +320,7 @@ TEST_F(URDFLinkTest, DISABLED_test_parse_link_without_name)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     // Parser continues but link parsing fails due to missing name, so model may exist but empty
     EXPECT_TRUE(model != nullptr);
@@ -335,14 +335,14 @@ TEST_F(URDFLinkTest, test_parse_empty_link)
   <link name="empty_link">
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("empty_link");
     ASSERT_TRUE(link != nullptr);
     EXPECT_EQ(link->name, "empty_link");
-    
+
     // Empty link should have no visual, collision, or inertial
     EXPECT_TRUE(link->visual == nullptr);
     EXPECT_TRUE(link->collision == nullptr);
@@ -366,15 +366,15 @@ TEST_F(URDFLinkTest, test_parse_link_with_material_texture)
     </visual>
   </link>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(format_urdf(link_xml));
     ASSERT_TRUE(model != nullptr);
-    
+
     auto link = model->getLink("textured_link");
     ASSERT_TRUE(link != nullptr);
     ASSERT_TRUE(link->visual != nullptr);
     ASSERT_TRUE(link->visual->material != nullptr);
-    
+
     EXPECT_EQ(link->visual->material->name, "textured");
     EXPECT_EQ(link->visual->material->texture_filename, "package://test/textures/wood.jpg");
 }

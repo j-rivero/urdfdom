@@ -24,6 +24,7 @@ set(tests
      urdf_error_test.cpp
      urdf_pose_advanced_test.cpp
      urdf_joint_dynamics_test.cpp
+     urdf_geometry_test.cpp
 )
 
 #################################################

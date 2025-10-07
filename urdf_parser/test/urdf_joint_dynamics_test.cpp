@@ -29,10 +29,10 @@ TEST_F(URDFJointDynamicsTest, test_parse_joint_dynamics_damping_only)
 
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_string);
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("test_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     ASSERT_TRUE(joint->dynamics != nullptr);
     EXPECT_DOUBLE_EQ(joint->dynamics->damping, 0.5);
     EXPECT_DOUBLE_EQ(joint->dynamics->friction, 0.0);  // Should default to 0
@@ -58,10 +58,10 @@ TEST_F(URDFJointDynamicsTest, test_parse_joint_dynamics_friction_only)
 
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_string);
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("test_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     ASSERT_TRUE(joint->dynamics != nullptr);
     EXPECT_DOUBLE_EQ(joint->dynamics->damping, 0.0);  // Should default to 0
     EXPECT_DOUBLE_EQ(joint->dynamics->friction, 0.3);
@@ -87,10 +87,10 @@ TEST_F(URDFJointDynamicsTest, test_parse_joint_dynamics_both_values)
 
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_string);
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("test_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     ASSERT_TRUE(joint->dynamics != nullptr);
     EXPECT_DOUBLE_EQ(joint->dynamics->damping, 1.2);
     EXPECT_DOUBLE_EQ(joint->dynamics->friction, 0.8);
@@ -182,10 +182,10 @@ TEST_F(URDFJointDynamicsTest, test_parse_joint_dynamics_zero_values)
 
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_string);
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("test_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     ASSERT_TRUE(joint->dynamics != nullptr);
     EXPECT_DOUBLE_EQ(joint->dynamics->damping, 0.0);
     EXPECT_DOUBLE_EQ(joint->dynamics->friction, 0.0);
@@ -211,10 +211,10 @@ TEST_F(URDFJointDynamicsTest, test_parse_joint_dynamics_negative_values)
 
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_string);
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("test_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     ASSERT_TRUE(joint->dynamics != nullptr);
     EXPECT_DOUBLE_EQ(joint->dynamics->damping, -0.1);
     EXPECT_DOUBLE_EQ(joint->dynamics->friction, -0.2);
@@ -240,10 +240,10 @@ TEST_F(URDFJointDynamicsTest, test_parse_joint_dynamics_scientific_notation)
 
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_string);
     ASSERT_TRUE(model != nullptr);
-    
+
     auto joint = model->getJoint("test_joint");
     ASSERT_TRUE(joint != nullptr);
-    
+
     ASSERT_TRUE(joint->dynamics != nullptr);
     EXPECT_DOUBLE_EQ(joint->dynamics->damping, 0.0015);
     EXPECT_DOUBLE_EQ(joint->dynamics->friction, 210.0);

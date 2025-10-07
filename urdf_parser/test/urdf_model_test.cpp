@@ -83,7 +83,7 @@ protected:
 
         // Invalid URDFs for error testing
         invalid_xml = "This is not valid XML";
-        
+
         empty_robot = R"(
 <?xml version="1.0"?>
 <robot name="empty_robot">
@@ -138,7 +138,7 @@ TEST_F(URDFModelTest, test_parse_urdf_with_materials)
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_with_materials);
     ASSERT_TRUE(model != nullptr);
     EXPECT_EQ(model->materials_.size(), 1u);
-    
+
     auto material = model->getMaterial("red");
     ASSERT_TRUE(material != nullptr);
     EXPECT_EQ(material->name, "red");
@@ -155,7 +155,7 @@ TEST_F(URDFModelTest, test_parse_urdf_with_joint)
     ASSERT_TRUE(model != nullptr);
     EXPECT_EQ(model->joints_.size(), 1u);
     EXPECT_EQ(model->links_.size(), 2u);
-    
+
     auto joint = model->getJoint("test_joint");
     ASSERT_TRUE(joint != nullptr);
     EXPECT_EQ(joint->name, "test_joint");
@@ -171,7 +171,7 @@ TEST_F(URDFModelTest, test_model_clear)
     ASSERT_TRUE(model != nullptr);
     EXPECT_FALSE(model->links_.empty());
     EXPECT_FALSE(model->joints_.empty());
-    
+
     model->clear();
     EXPECT_TRUE(model->links_.empty());
     EXPECT_TRUE(model->joints_.empty());
@@ -184,12 +184,12 @@ TEST_F(URDFModelTest, test_get_link)
 {
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_with_joint);
     ASSERT_TRUE(model != nullptr);
-    
+
     // Test existing link
     auto link = model->getLink("base_link");
     EXPECT_TRUE(link != nullptr);
     EXPECT_EQ(link->name, "base_link");
-    
+
     // Test non-existing link
     auto non_existing = model->getLink("non_existing_link");
     EXPECT_TRUE(non_existing == nullptr);
@@ -200,12 +200,12 @@ TEST_F(URDFModelTest, test_get_joint)
 {
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_with_joint);
     ASSERT_TRUE(model != nullptr);
-    
+
     // Test existing joint
     auto joint = model->getJoint("test_joint");
     EXPECT_TRUE(joint != nullptr);
     EXPECT_EQ(joint->name, "test_joint");
-    
+
     // Test non-existing joint
     auto non_existing = model->getJoint("non_existing_joint");
     EXPECT_TRUE(non_existing == nullptr);
@@ -216,12 +216,12 @@ TEST_F(URDFModelTest, test_get_material)
 {
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_with_materials);
     ASSERT_TRUE(model != nullptr);
-    
+
     // Test existing material
     auto material = model->getMaterial("red");
     EXPECT_TRUE(material != nullptr);
     EXPECT_EQ(material->name, "red");
-    
+
     // Test non-existing material
     auto non_existing = model->getMaterial("non_existing_material");
     EXPECT_TRUE(non_existing == nullptr);
@@ -240,7 +240,7 @@ TEST_F(URDFModelTest, test_get_root_link)
 {
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(urdf_with_joint);
     ASSERT_TRUE(model != nullptr);
-    
+
     auto root = model->getRoot();
     EXPECT_TRUE(root != nullptr);
     EXPECT_EQ(root->name, "base_link");
@@ -255,7 +255,7 @@ TEST_F(URDFModelTest, test_parse_urdf_no_robot_tag)
   <link name="base_link"/>
 </not_robot>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(no_robot_tag);
     EXPECT_TRUE(model == nullptr);
 }
@@ -275,7 +275,7 @@ TEST_F(URDFModelTest, test_parse_urdf_no_name)
   </link>
 </robot>
 )";
-    
+
     urdf::ModelInterfaceSharedPtr model = urdf::parseURDF(no_name_urdf);
     EXPECT_TRUE(model == nullptr);
 }
