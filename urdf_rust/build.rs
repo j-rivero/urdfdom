@@ -44,16 +44,13 @@ fn generate_c_bindings() {
         std::fs::create_dir_all(parent).unwrap();
     }
     
-    // Generate C bindings using cbindgen
-    match cbindgen::generate(&crate_dir) {
-        Ok(bindings) => {
-            bindings.write_to_file(&output_file);
-            println!("cargo:warning=Generated C bindings at: {}", output_file.display());
-        }
-        Err(e) => {
-            println!("cargo:warning=Failed to generate C bindings: {}", e);
-            // Create a minimal header file as fallback
-            let minimal_header = r#"
+    // For now, we'll use a manually maintained header file
+    // TODO: Fix cbindgen configuration or use a different approach
+    println!("cargo:warning=Using manually maintained header file at: {}", output_file.display());
+    
+    // Check if header file exists, if not create a minimal one
+    if !output_file.exists() {
+        let minimal_header = r#"
 #ifndef URDF_RUST_H
 #define URDF_RUST_H
 
@@ -73,8 +70,7 @@ typedef struct UrdfModel UrdfModel;
 
 #endif // URDF_RUST_H
 "#;
-            std::fs::write(output_file, minimal_header).unwrap();
-        }
+        std::fs::write(output_file, minimal_header).unwrap();
     }
 }
 

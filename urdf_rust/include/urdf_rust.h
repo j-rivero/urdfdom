@@ -7,6 +7,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stddef.h>
 
 // ====================
 // POSE DATA STRUCTURES
@@ -46,13 +47,6 @@ Vector3 urdf_vector3_zero(void);
 // Clear/reset a Vector3 to zero
 void urdf_vector3_clear(Vector3* vec);
 
-// Initialize Vector3 from string "x y z"
-// Returns 0 on success, negative on error
-int urdf_vector3_init(Vector3* vec, const char* vector_str);
-
-// Add two Vector3 instances
-Vector3 urdf_vector3_add(Vector3 a, Vector3 b);
-
 // ====================
 // ROTATION FUNCTIONS
 // ====================
@@ -60,27 +54,11 @@ Vector3 urdf_vector3_add(Vector3 a, Vector3 b);
 // Create a new Rotation with specified quaternion components
 Rotation urdf_rotation_new(double x, double y, double z, double w);
 
-// Create an identity Rotation (no rotation)
+// Create an identity Rotation (0, 0, 0, 1)
 Rotation urdf_rotation_identity(void);
 
 // Clear/reset a Rotation to identity
 void urdf_rotation_clear(Rotation* rot);
-
-// Get quaternion components from Rotation
-void urdf_rotation_get_quaternion(const Rotation* rot, double* x, double* y, double* z, double* w);
-
-// Get Roll-Pitch-Yaw angles from Rotation (in radians)
-void urdf_rotation_get_rpy(const Rotation* rot, double* roll, double* pitch, double* yaw);
-
-// Set rotation from quaternion components
-void urdf_rotation_set_from_quaternion(Rotation* rot, double x, double y, double z, double w);
-
-// Set rotation from Roll-Pitch-Yaw angles (in radians)
-void urdf_rotation_set_from_rpy(Rotation* rot, double roll, double pitch, double yaw);
-
-// Initialize Rotation from string "roll pitch yaw"
-// Returns 0 on success, negative on error
-int urdf_rotation_init(Rotation* rot, const char* rotation_str);
 
 // Normalize quaternion to unit length
 void urdf_rotation_normalize(Rotation* rot);
@@ -115,6 +93,57 @@ Pose urdf_pose_get_inverse(const Pose* pose);
 
 // Multiply two poses (combine transformations)
 Pose urdf_pose_multiply(Pose p1, Pose p2);
+
+// ====================
+// GEOMETRY DATA STRUCTURES
+// ====================
+
+// Geometry type enumeration - matches C++ urdf::Geometry enum
+typedef enum {
+    URDF_GEOMETRY_SPHERE = 0,
+    URDF_GEOMETRY_BOX = 1,
+    URDF_GEOMETRY_CYLINDER = 2,
+    URDF_GEOMETRY_MESH = 3
+} UrdfGeometryType;
+
+// Opaque pointer to Rust Geometry - managed internally
+typedef void* UrdfGeometry;
+
+// ====================
+// GEOMETRY FUNCTIONS
+// ====================
+
+// Create a box geometry with dimensions (x, y, z)
+UrdfGeometry urdf_geometry_create_box(double x, double y, double z);
+
+// Create a sphere geometry with radius
+UrdfGeometry urdf_geometry_create_sphere(double radius);
+
+// Create a cylinder geometry with radius and length
+UrdfGeometry urdf_geometry_create_cylinder(double radius, double length);
+
+// Create a mesh geometry with filename and optional scale
+UrdfGeometry urdf_geometry_create_mesh(const char* filename, const double scale[3]);
+
+// Destroy/free a geometry object
+void urdf_geometry_destroy(UrdfGeometry geometry);
+
+// Get the type of a geometry object
+int urdf_geometry_get_type(UrdfGeometry geometry);
+
+// Box-specific functions
+int urdf_geometry_box_get_dimensions(UrdfGeometry geometry, double dimensions[3]);
+
+// Sphere-specific functions
+double urdf_geometry_sphere_get_radius(UrdfGeometry geometry);
+
+// Cylinder-specific functions
+double urdf_geometry_cylinder_get_radius(UrdfGeometry geometry);
+double urdf_geometry_cylinder_get_length(UrdfGeometry geometry);
+
+// Mesh-specific functions
+int urdf_geometry_mesh_get_filename(UrdfGeometry geometry, char* buffer, size_t buffer_size);
+int urdf_geometry_mesh_get_scale(UrdfGeometry geometry, double scale[3]);
 
 // ====================
 // LEGACY FUNCTIONS

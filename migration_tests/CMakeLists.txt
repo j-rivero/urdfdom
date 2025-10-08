@@ -53,10 +53,11 @@ add_custom_target(build_rust_lib
 )
 
 # Add migration tests
+add_migration_test(pose_migration_test pose_migration_test.cpp)
+add_migration_test(vector3_migration_test vector3_migration_test.cpp)
+add_migration_test(geometry_migration_test geometry_migration_test.cpp)
 add_migration_test(test_rust_integration test_rust_integration.cpp)
 add_migration_test(test_urdf_parsing test_urdf_parsing.cpp)
-add_migration_test(vector3_migration_test vector3_migration_test.cpp)
-add_migration_test(pose_migration_test pose_migration_test.cpp)
 
 # Make all tests depend on the Rust library being built
 add_dependencies(test_rust_integration build_rust_lib)

@@ -37,14 +37,6 @@ install/
 *.exe
 
 # ======================
-# TEMPORARY TEST FILES
-# ======================
-
-# Migration test files
-*_migration_test
-*_migration_test.cpp
-
-# ======================
 # IDE AND SYSTEM FILES
 # ======================
 
@@ -57,10 +49,3 @@ install/
 Thumbs.db
 *.swp
 *.swo
-
-# ======================
-# KEEP IMPORTANT FILES
-# ======================
-
-# These generated files should be committed
-!urdf_rust/include/urdf_rust.h

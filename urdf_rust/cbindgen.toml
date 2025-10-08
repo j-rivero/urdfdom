@@ -58,7 +58,20 @@ include = [
   "urdf_pose_new",
   "urdf_pose_identity", 
   "urdf_pose_clear",
-  "urdf_parse_vector3"
+  "urdf_parse_vector3",
+  "UrdfGeometryType",
+  "urdf_geometry_create_box",
+  "urdf_geometry_create_sphere", 
+  "urdf_geometry_create_cylinder",
+  "urdf_geometry_create_mesh",
+  "urdf_geometry_destroy",
+  "urdf_geometry_get_type",
+  "urdf_geometry_box_get_dimensions",
+  "urdf_geometry_sphere_get_radius",
+  "urdf_geometry_cylinder_get_radius",
+  "urdf_geometry_cylinder_get_length",
+  "urdf_geometry_mesh_get_filename",
+  "urdf_geometry_mesh_get_scale"
 ]
 
 [fn]

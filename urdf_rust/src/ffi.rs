@@ -504,6 +504,256 @@ pub extern "C" fn urdf_pose_clear(pose: *mut Pose) {
     }
 }
 
+// ============================================================================
+// GEOMETRY FFI FUNCTIONS
+// ============================================================================
+
+use crate::model::geometry::Geometry;
+use std::boxed::Box;
+
+/// Geometry type enumeration - matches C++ urdf::Geometry enum
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UrdfGeometryType {
+    Sphere = 0,
+    Box = 1,
+    Cylinder = 2,
+    Mesh = 3,
+}
+
+impl From<&Geometry> for UrdfGeometryType {
+    fn from(geometry: &Geometry) -> Self {
+        match geometry {
+            Geometry::Sphere { .. } => UrdfGeometryType::Sphere,
+            Geometry::Box { .. } => UrdfGeometryType::Box,
+            Geometry::Cylinder { .. } => UrdfGeometryType::Cylinder,
+            Geometry::Mesh { .. } => UrdfGeometryType::Mesh,
+        }
+    }
+}
+
+/// Create a box geometry with dimensions (x, y, z)
+#[no_mangle]
+pub extern "C" fn urdf_geometry_create_box(x: f64, y: f64, z: f64) -> *mut Geometry {
+    let geometry = Geometry::Box { size: [x, y, z] };
+    Box::into_raw(Box::new(geometry))
+}
+
+/// Create a sphere geometry with radius
+#[no_mangle]
+pub extern "C" fn urdf_geometry_create_sphere(radius: f64) -> *mut Geometry {
+    let geometry = Geometry::Sphere { radius };
+    Box::into_raw(Box::new(geometry))
+}
+
+/// Create a cylinder geometry with radius and length
+#[no_mangle]
+pub extern "C" fn urdf_geometry_create_cylinder(radius: f64, length: f64) -> *mut Geometry {
+    let geometry = Geometry::Cylinder { radius, length };
+    Box::into_raw(Box::new(geometry))
+}
+
+/// Create a mesh geometry with filename and optional scale
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_create_mesh(
+    filename: *const c_char,
+    scale: *const f64,
+) -> *mut Geometry {
+    if filename.is_null() {
+        set_last_error(UrdfErrorCode::NullPointer);
+        return ptr::null_mut();
+    }
+
+    let filename_str = match CStr::from_ptr(filename).to_str() {
+        Ok(s) => s.to_string(),
+        Err(_) => {
+            set_last_error(UrdfErrorCode::InvalidUtf8);
+            return ptr::null_mut();
+        }
+    };
+
+    let scale_array = if scale.is_null() {
+        None
+    } else {
+        Some([*scale, *scale.offset(1), *scale.offset(2)])
+    };
+
+    let geometry = Geometry::Mesh {
+        filename: filename_str,
+        scale: scale_array,
+    };
+
+    set_last_error(UrdfErrorCode::Success);
+    Box::into_raw(Box::new(geometry))
+}
+
+/// Destroy/free a geometry object
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_destroy(geometry: *mut Geometry) {
+    if !geometry.is_null() {
+        let _geometry = Box::from_raw(geometry);
+        // Geometry is automatically dropped here
+    }
+}
+
+/// Get the type of a geometry object
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_get_type(geometry: *const Geometry) -> c_int {
+    if geometry.is_null() {
+        set_last_error(UrdfErrorCode::NullPointer);
+        return -1;
+    }
+
+    let geom = &*geometry;
+    let geom_type: UrdfGeometryType = geom.into();
+    set_last_error(UrdfErrorCode::Success);
+    geom_type as c_int
+}
+
+/// Get dimensions of a box geometry
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_box_get_dimensions(
+    geometry: *const Geometry,
+    dimensions: *mut f64,
+) -> c_int {
+    if geometry.is_null() || dimensions.is_null() {
+        set_last_error(UrdfErrorCode::NullPointer);
+        return -1;
+    }
+
+    let geom = &*geometry;
+    if let Geometry::Box { size } = geom {
+        *dimensions = size[0];
+        *dimensions.offset(1) = size[1];
+        *dimensions.offset(2) = size[2];
+        set_last_error(UrdfErrorCode::Success);
+        0
+    } else {
+        set_last_error(UrdfErrorCode::InvalidParameter);
+        -1
+    }
+}
+
+/// Get radius of a sphere geometry
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_sphere_get_radius(geometry: *const Geometry) -> f64 {
+    if geometry.is_null() {
+        set_last_error(UrdfErrorCode::NullPointer);
+        return -1.0;
+    }
+
+    let geom = &*geometry;
+    if let Geometry::Sphere { radius } = geom {
+        set_last_error(UrdfErrorCode::Success);
+        *radius
+    } else {
+        set_last_error(UrdfErrorCode::InvalidParameter);
+        -1.0
+    }
+}
+
+/// Get radius of a cylinder geometry
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_cylinder_get_radius(geometry: *const Geometry) -> f64 {
+    if geometry.is_null() {
+        set_last_error(UrdfErrorCode::NullPointer);
+        return -1.0;
+    }
+
+    let geom = &*geometry;
+    if let Geometry::Cylinder { radius, .. } = geom {
+        set_last_error(UrdfErrorCode::Success);
+        *radius
+    } else {
+        set_last_error(UrdfErrorCode::InvalidParameter);
+        -1.0
+    }
+}
+
+/// Get length of a cylinder geometry
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_cylinder_get_length(geometry: *const Geometry) -> f64 {
+    if geometry.is_null() {
+        set_last_error(UrdfErrorCode::NullPointer);
+        return -1.0;
+    }
+
+    let geom = &*geometry;
+    if let Geometry::Cylinder { length, .. } = geom {
+        set_last_error(UrdfErrorCode::Success);
+        *length
+    } else {
+        set_last_error(UrdfErrorCode::InvalidParameter);
+        -1.0
+    }
+}
+
+/// Get filename of a mesh geometry
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_mesh_get_filename(
+    geometry: *const Geometry,
+    buffer: *mut c_char,
+    buffer_size: usize,
+) -> c_int {
+    if geometry.is_null() || buffer.is_null() {
+        set_last_error(UrdfErrorCode::NullPointer);
+        return -1;
+    }
+
+    let geom = &*geometry;
+    if let Geometry::Mesh { filename, .. } = geom {
+        let filename_bytes = filename.as_bytes();
+        if filename_bytes.len() + 1 > buffer_size {
+            set_last_error(UrdfErrorCode::InvalidParameter);
+            return -1;
+        }
+
+        // Copy filename to buffer
+        std::ptr::copy_nonoverlapping(filename_bytes.as_ptr(), buffer as *mut u8, filename_bytes.len());
+        *buffer.offset(filename_bytes.len() as isize) = 0; // Null terminator
+
+        set_last_error(UrdfErrorCode::Success);
+        0
+    } else {
+        set_last_error(UrdfErrorCode::InvalidParameter);
+        -1
+    }
+}
+
+/// Get scale of a mesh geometry
+#[no_mangle]
+pub unsafe extern "C" fn urdf_geometry_mesh_get_scale(
+    geometry: *const Geometry,
+    scale: *mut f64,
+) -> c_int {
+    if geometry.is_null() || scale.is_null() {
+        set_last_error(UrdfErrorCode::NullPointer);
+        return -1;
+    }
+
+    let geom = &*geometry;
+    if let Geometry::Mesh { scale: mesh_scale, .. } = geom {
+        match mesh_scale {
+            Some(scale_array) => {
+                *scale = scale_array[0];
+                *scale.offset(1) = scale_array[1];
+                *scale.offset(2) = scale_array[2];
+            }
+            None => {
+                // Default scale is 1.0, 1.0, 1.0
+                *scale = 1.0;
+                *scale.offset(1) = 1.0;
+                *scale.offset(2) = 1.0;
+            }
+        }
+        set_last_error(UrdfErrorCode::Success);
+        0
+    } else {
+        set_last_error(UrdfErrorCode::InvalidParameter);
+        -1
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
