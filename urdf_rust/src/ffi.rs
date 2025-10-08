@@ -17,6 +17,7 @@ use std::ptr;
 
 use crate::model::Robot;
 use crate::parser::parse_urdf_string;
+use crate::utils::parse_vector3;
 use crate::error::UrdfError;
 
 /// Opaque handle to a Rust Robot instance
@@ -246,6 +247,45 @@ pub extern "C" fn urdf_error_description(error_code: c_int) -> *const c_char {
     
     description.as_ptr() as *const c_char
 }
+
+/// Parse a Vector3 from a C string
+/// 
+/// This function is a direct migration of the C++ Vector3::init() functionality.
+/// It parses a space-separated string "x y z" into three floating point components.
+/// 
+/// # Safety
+/// 
+/// - `input` must be a valid null-terminated C string
+/// - `x`, `y`, `z` must be valid pointers to f64 storage
+/// 
+/// # Returns
+/// 
+/// - 1 (true) on success, with parsed values written to x, y, z
+/// - 0 (false) on error (invalid input, wrong number of components, etc.)
+/// 
+/// # Examples from C++
+/// 
+/// ```cpp
+/// // Before (C++ version):
+/// urdf::Vector3 vec;
+/// try {
+///     vec.init("1.0 2.0 3.0");
+///     // Success: vec.x = 1.0, vec.y = 2.0, vec.z = 3.0
+/// } catch(urdf::ParseError &e) {
+///     // Handle error
+/// }
+/// 
+/// // After (Rust FFI version):
+/// double x, y, z;
+/// if (urdf_parse_vector3("1.0 2.0 3.0", &x, &y, &z)) {
+///     // Success: x = 1.0, y = 2.0, z = 3.0
+/// } else {
+///     // Handle error
+/// }
+/// ```
+///
+/// Note: The actual FFI implementation is in utils.rs, this is just the re-export
+pub use crate::utils::urdf_parse_vector3;
 
 #[cfg(test)]
 mod tests {

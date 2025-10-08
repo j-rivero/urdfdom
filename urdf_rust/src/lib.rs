@@ -53,11 +53,13 @@ use std::os::raw::{c_char, c_int};
 pub mod ffi;
 pub mod model;
 pub mod parser;
+pub mod utils;
 pub mod error;
 
 // Re-export main types for convenience
 pub use model::{Robot, Link, Joint, Material, Geometry};
 pub use parser::{parse_urdf_string};
+pub use utils::{parse_vector3};
 pub use error::{UrdfError, UrdfResult};
 
 /// Version information matching the C++ urdfdom version

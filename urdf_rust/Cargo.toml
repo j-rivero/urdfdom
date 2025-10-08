@@ -31,9 +31,9 @@ libc = "0.2"
 # For build script integration with CMake
 cbindgen = "0.24"
 
-[dev-dependencies]
-# Testing framework
-criterion = { version = "0.5", features = ["html_reports"] }
+# [dev-dependencies]
+# Testing framework (disabled due to Rust version compatibility)
+# criterion = { version = "0.5", features = ["html_reports"] }
 
 # Features for gradual migration
 [features]
@@ -59,10 +59,10 @@ opt-level = 0
 debug = true
 overflow-checks = true
 
-# Benchmark configuration
-[[bench]]
-name = "urdf_parsing_benchmark"
-harness = false
+# Benchmark configuration (disabled due to Rust version compatibility)
+# [[bench]]
+# name = "urdf_parsing_benchmark"
+# harness = false
 
 # Integration with C++ build system
 [package.metadata.cmake]
