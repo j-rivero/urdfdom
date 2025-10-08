@@ -75,10 +75,146 @@ set(CMAKE_CONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}/cmake)
 string(REGEX REPLACE "[^/]+" ".." RELATIVE_PATH_CMAKE_DIR_TO_PREFIX "${CMAKE_CONFIG_INSTALL_DIR}")
 string(REGEX REPLACE "[^/]+" ".." RELATIVE_PATH_LIBDIR_TO_PREFIX "${CMAKE_INSTALL_LIBDIR}")
 
+# Rust integration for gradual migration
+option(BUILD_RUST_BINDINGS "Build Rust bindings alongside C++ library" ON)
+
+if(BUILD_RUST_BINDINGS)
+  # Check for Rust toolchain
+  find_program(RUSTC_EXECUTABLE rustc)
+  find_program(CARGO_EXECUTABLE cargo)
+  
+  if(RUSTC_EXECUTABLE AND CARGO_EXECUTABLE)
+    message(STATUS "Found Rust toolchain: ${RUSTC_EXECUTABLE}")
+    
+    # Get Rust version for validation
+    execute_process(
+      COMMAND ${RUSTC_EXECUTABLE} --version
+      OUTPUT_VARIABLE RUST_VERSION_OUTPUT
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    message(STATUS "Rust version: ${RUST_VERSION_OUTPUT}")
+    
+    # Check if we have the urdf_rust crate
+    set(RUST_CRATE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/urdf_rust")
+    if(EXISTS "${RUST_CRATE_DIR}/Cargo.toml")
+      message(STATUS "Found urdf_rust crate at: ${RUST_CRATE_DIR}")
+      
+      # Set up Rust build configuration
+      if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CARGO_BUILD_TYPE "debug")
+        set(RUST_BUILD_FLAG "")
+      else()
+        set(CARGO_BUILD_TYPE "release")
+        set(RUST_BUILD_FLAG "--release")
+      endif()
+      
+      # Set target directory to avoid conflicts
+      set(RUST_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/rust_target")
+      
+      # Configure Rust build with CMake integration
+      set(RUST_CMAKE_PREFIX "${CMAKE_CURRENT_BINARY_DIR}")
+      set(RUST_CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+      set(RUST_CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}")
+      set(RUST_CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+      set(RUST_CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+      set(RUST_CMAKE_INSTALL_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+      
+      # Custom target to build Rust library
+      add_custom_target(urdf_rust_build
+        COMMAND ${CMAKE_COMMAND} -E env
+          "CMAKE_PREFIX_PATH=${RUST_CMAKE_PREFIX}"
+          "CMAKE_LIBRARY_OUTPUT_DIRECTORY=${RUST_CMAKE_LIBRARY_OUTPUT_DIRECTORY}"
+          "CMAKE_ARCHIVE_OUTPUT_DIRECTORY=${RUST_CMAKE_ARCHIVE_OUTPUT_DIRECTORY}"
+          "CMAKE_INSTALL_PREFIX=${RUST_CMAKE_INSTALL_PREFIX}"
+          "CMAKE_INSTALL_LIBDIR=${RUST_CMAKE_INSTALL_LIBDIR}"
+          "CMAKE_INSTALL_INCLUDEDIR=${RUST_CMAKE_INSTALL_INCLUDEDIR}"
+          ${CARGO_EXECUTABLE} build ${RUST_BUILD_FLAG}
+          --target-dir "${RUST_TARGET_DIR}"
+        WORKING_DIRECTORY "${RUST_CRATE_DIR}"
+        COMMENT "Building urdf_rust library"
+        VERBATIM
+      )
+      
+      # Define library paths
+      set(RUST_LIB_NAME "urdf_rust")
+      if(WIN32)
+        set(RUST_LIB_FILE "${RUST_TARGET_DIR}/${CARGO_BUILD_TYPE}/${RUST_LIB_NAME}.lib")
+      else()
+        set(RUST_LIB_FILE "${RUST_TARGET_DIR}/${CARGO_BUILD_TYPE}/lib${RUST_LIB_NAME}.a")
+      endif()
+      
+      # Create imported library target
+      add_library(urdf_rust STATIC IMPORTED GLOBAL)
+      set_target_properties(urdf_rust PROPERTIES
+        IMPORTED_LOCATION "${RUST_LIB_FILE}"
+      )
+      
+      # Ensure Rust library is built before anything that depends on it
+      add_dependencies(urdf_rust urdf_rust_build)
+      
+      # Check if cbindgen generated headers exist
+      set(RUST_HEADER_FILE "${RUST_CRATE_DIR}/include/urdf_rust.h")
+      
+      # Custom target to generate C headers
+      add_custom_target(urdf_rust_headers
+        COMMAND ${CMAKE_COMMAND} -E env
+          ${CARGO_EXECUTABLE} build ${RUST_BUILD_FLAG}
+          --target-dir "${RUST_TARGET_DIR}"
+        WORKING_DIRECTORY "${RUST_CRATE_DIR}"
+        COMMENT "Generating C headers for urdf_rust"
+        VERBATIM
+      )
+      
+      # Install Rust library and headers
+      install(FILES "${RUST_LIB_FILE}"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT libraries
+        OPTIONAL  # Don't fail if file doesn't exist during configure
+      )
+      
+      if(EXISTS "${RUST_HEADER_FILE}")
+        install(FILES "${RUST_HEADER_FILE}"
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+          COMPONENT headers
+        )
+      endif()
+      
+      # Export Rust library for downstream projects
+      set(PKG_RUST_LIBRARIES "urdf_rust")
+      
+      # Include Rust headers in build
+      if(EXISTS "${RUST_HEADER_FILE}")
+        include_directories("${RUST_CRATE_DIR}/include")
+      endif()
+      
+      message(STATUS "Rust integration configured successfully")
+      message(STATUS "  Build target: urdf_rust_build")
+      message(STATUS "  Library: ${RUST_LIB_FILE}")
+      message(STATUS "  Headers: ${RUST_HEADER_FILE}")
+      
+    else()
+      message(WARNING "urdf_rust crate not found at ${RUST_CRATE_DIR}")
+      message(WARNING "Rust bindings will not be built")
+      set(BUILD_RUST_BINDINGS OFF)
+    endif()
+    
+  else()
+    message(WARNING "Rust toolchain not found (rustc: ${RUSTC_EXECUTABLE}, cargo: ${CARGO_EXECUTABLE})")
+    message(WARNING "Rust bindings will not be built")
+    message(STATUS "To install Rust: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh")
+    set(BUILD_RUST_BINDINGS OFF)
+  endif()
+else()
+  message(STATUS "Rust bindings disabled (BUILD_RUST_BINDINGS=OFF)")
+endif()
+
 add_subdirectory(urdf_parser)
 
 set(PKG_NAME ${PROJECT_NAME})
 set(PKG_LIBRARIES urdfdom_sensor urdfdom_model urdfdom_world)
+if(BUILD_RUST_BINDINGS AND PKG_RUST_LIBRARIES)
+  list(APPEND PKG_LIBRARIES ${PKG_RUST_LIBRARIES})
+endif()
 set(PKG_DEPENDS urdfdom_headers)
 set(PKG_EXPORTS urdfdom)
 set(cmake_conf_file "cmake/urdfdom-config")
@@ -104,6 +240,9 @@ install(FILES package.xml DESTINATION share/${PROJECT_NAME})
 set(PKG_DESC "Unified Robot Description Format")
 set(PKG_DEPENDS "urdfdom_headers") # make the list separated by spaces instead of ;
 set(PKG_URDF_LIBS "-lurdfdom_sensor -lurdfdom_model -lurdfdom_world")
+if(BUILD_RUST_BINDINGS AND PKG_RUST_LIBRARIES)
+  set(PKG_URDF_LIBS "${PKG_URDF_LIBS} -lurdf_rust")
+endif()
 set(pkg_conf_file "cmake/pkgconfig/urdfdom.pc")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/${pkg_conf_file}.in" "${CMAKE_BINARY_DIR}/${pkg_conf_file}" @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/${pkg_conf_file}

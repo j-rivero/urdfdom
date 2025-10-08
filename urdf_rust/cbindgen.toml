@@ -1,0 +1,37 @@
+# cbindgen configuration for urdf_rust
+language = "C"
+
+header = """/* URDF Rust Library - C FFI Bindings
+ * 
+ * This header provides C-compatible bindings for the URDF Rust library.
+ * Generated automatically by cbindgen from Rust source code.
+ */
+
+#ifndef URDF_RUST_H
+#define URDF_RUST_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>"""
+
+trailer = """
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* URDF_RUST_H */"""
+
+include_guard = "URDF_RUST_H"
+tab_width = 4
+line_length = 100
+documentation = true
+
+[parse]
+parse_deps = true
+
+[fn]
+rename_args = "snake_case"

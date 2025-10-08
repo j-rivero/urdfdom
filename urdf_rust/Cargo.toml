@@ -1,0 +1,72 @@
+[package]
+name = "urdf_rust"
+version = "5.0.2"  # Matching urdfdom version
+edition = "2021"
+authors = ["URDF Rust Migration Team"]
+description = "Rust implementation of URDF (Unified Robot Description Format) parser - incremental migration from C++"
+license = "BSD-3-Clause"
+repository = "https://github.com/ros/urdfdom"
+documentation = "https://docs.rs/urdf_rust"
+readme = "README.md"
+keywords = ["robotics", "urdf", "ros", "xml", "parser"]
+categories = ["parsing", "robotics", "science"]
+
+[lib]
+name = "urdf_rust"
+crate-type = ["staticlib", "cdylib", "rlib"]  # Support for C FFI, dynamic linking, and Rust libraries
+
+[dependencies]
+# XML parsing - using quick-xml for performance
+quick-xml = "0.31"
+# Serialization support
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+# FFI support
+libc = "0.2"
+
+[build-dependencies]
+# For build script integration with CMake
+cbindgen = "0.24"
+
+[dev-dependencies]
+# Testing framework
+criterion = { version = "0.5", features = ["html_reports"] }
+
+# Features for gradual migration
+[features]
+default = ["ffi"]
+# FFI support for C++ interop during migration
+ffi = []
+# Performance optimizations
+simd = []
+# Validation features
+strict-validation = []
+# Debug features for development
+debug-xml = []
+
+# Optimization profiles
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+opt-level = 0
+debug = true
+overflow-checks = true
+
+# Benchmark configuration
+[[bench]]
+name = "urdf_parsing_benchmark"
+harness = false
+
+# Integration with C++ build system
+[package.metadata.cmake]
+# CMake integration hints
+include_dir = "include"
+lib_dir = "target/release"
+lib_name = "urdf_rust"
