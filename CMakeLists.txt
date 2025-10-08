@@ -147,6 +147,11 @@ if(ENABLE_COVERAGE)
   )
 endif()
 
+# Performance testing info
+message(STATUS "Performance testing targets available:")
+message(STATUS "  make performance-test       - Run full URDF parser benchmark suite")
+message(STATUS "  make performance-test-quick  - Run quick performance test")
+
 message(STATUS "Configuration successful. Type make to compile urdfdom")
 
 SET_DIRECTORY_PROPERTIES(PROPERTIES

@@ -27,6 +27,11 @@ set(tests
      urdf_geometry_test.cpp
 )
 
+# Performance test (separate handling)
+set(performance_tests
+     urdf_performance_test.cpp
+)
+
 #################################################
 # Build all the tests
 foreach(GTEST_SOURCE_file ${tests})
@@ -42,6 +47,13 @@ foreach(GTEST_SOURCE_file ${tests})
     target_link_libraries(${BINARY_NAME} pthread)
   endif()
 
+if(GTEST_SOURCE_file STREQUAL "urdf_export_test.cpp")
+    target_link_libraries(${BINARY_NAME}
+      tinyxml2::tinyxml2
+      urdfdom_world
+    )
+endif()
+
   add_test(NAME    ${BINARY_NAME}
            COMMAND ${BINARY_NAME}
                    --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
@@ -54,3 +66,38 @@ foreach(GTEST_SOURCE_file ${tests})
 
   set_tests_properties(${BINARY_NAME}_locale PROPERTIES TIMEOUT 240 ENVIRONMENT LC_ALL=nl_NL.UTF-8)
 endforeach()
+
+#################################################
+# Build performance tests (with different handling)
+foreach(PERF_SOURCE_file ${performance_tests})
+  string(REGEX REPLACE ".cpp" "" BINARY_NAME ${PERF_SOURCE_file})
+  add_executable(${BINARY_NAME} ${PERF_SOURCE_file})
+
+  target_link_libraries(${BINARY_NAME}
+    urdfdom_model
+    urdfdom_world
+  )
+  if (UNIX)
+    target_link_libraries(${BINARY_NAME} pthread)
+  endif()
+
+  # Performance tests are not added to the regular test suite
+  # They can be run manually or with make performance-test target
+
+endforeach()
+
+# Add custom target for performance testing
+add_custom_target(performance-test
+  COMMAND ${CMAKE_BINARY_DIR}/bin/urdf_performance_test
+  DEPENDS urdf_performance_test
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  COMMENT "Running URDF parser performance benchmark"
+)
+
+# Add quick performance test target
+add_custom_target(performance-test-quick
+  COMMAND ${CMAKE_BINARY_DIR}/bin/urdf_performance_test --quick
+  DEPENDS urdf_performance_test
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  COMMENT "Running quick URDF parser performance benchmark"
+)
