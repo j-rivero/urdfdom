@@ -12,12 +12,11 @@
 //! - Memory management follows RAII principles with explicit create/destroy functions
 
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int, c_void};
+use std::os::raw::{c_char, c_int};
 use std::ptr;
 
 use crate::model::Robot;
 use crate::parser::parse_urdf_string;
-use crate::utils::parse_vector3;
 use crate::error::UrdfError;
 
 /// Opaque handle to a Rust Robot instance
@@ -283,9 +282,227 @@ pub extern "C" fn urdf_error_description(error_code: c_int) -> *const c_char {
 ///     // Handle error
 /// }
 /// ```
-///
-/// Note: The actual FFI implementation is in utils.rs, this is just the re-export
-pub use crate::utils::urdf_parse_vector3;
+
+/// FFI functions for Pose data structures
+/// 
+/// These functions provide C-compatible wrappers for the Vector3, Rotation, and Pose
+/// structs, enabling seamless integration with existing C++ code.
+
+use crate::pose::{Vector3, Rotation, Pose};
+
+/// Create a new Vector3 with specified components
+#[no_mangle]
+pub extern "C" fn urdf_vector3_new(x: f64, y: f64, z: f64) -> Vector3 {
+    Vector3::new(x, y, z)
+}
+
+/// Create a zero Vector3
+#[no_mangle]
+pub extern "C" fn urdf_vector3_zero() -> Vector3 {
+    Vector3::zero()
+}
+
+/// Clear Vector3 to zero
+#[no_mangle]
+pub extern "C" fn urdf_vector3_clear(vec: *mut Vector3) {
+    if !vec.is_null() {
+        unsafe {
+            (*vec).clear();
+        }
+    }
+}
+
+/// Initialize Vector3 from string "x y z"
+/// Returns 0 on success, 1 on error
+#[no_mangle]
+pub extern "C" fn urdf_vector3_init(vec: *mut Vector3, vector_str: *const c_char) -> c_int {
+    if vec.is_null() || vector_str.is_null() {
+        return 1;
+    }
+    
+    unsafe {
+        let c_str = match CStr::from_ptr(vector_str).to_str() {
+            Ok(s) => s,
+            Err(_) => return 1,
+        };
+        
+        match (*vec).init(c_str) {
+            Ok(_) => 0,
+            Err(_) => 1,
+        }
+    }
+}
+
+/// Add two Vector3s (result = a + b)
+#[no_mangle]
+pub extern "C" fn urdf_vector3_add(a: Vector3, b: Vector3) -> Vector3 {
+    a + b
+}
+
+/// Create a new Rotation with specified quaternion components
+#[no_mangle]
+pub extern "C" fn urdf_rotation_new(x: f64, y: f64, z: f64, w: f64) -> Rotation {
+    Rotation::new(x, y, z, w)
+}
+
+/// Create identity Rotation (no rotation)
+#[no_mangle]
+pub extern "C" fn urdf_rotation_identity() -> Rotation {
+    Rotation::identity()
+}
+
+/// Clear Rotation to identity
+#[no_mangle]
+pub extern "C" fn urdf_rotation_clear(rot: *mut Rotation) {
+    if !rot.is_null() {
+        unsafe {
+            (*rot).clear();
+        }
+    }
+}
+
+/// Get quaternion components from Rotation
+#[no_mangle]
+pub extern "C" fn urdf_rotation_get_quaternion(
+    rot: *const Rotation,
+    quat_x: *mut f64,
+    quat_y: *mut f64,
+    quat_z: *mut f64,
+    quat_w: *mut f64,
+) {
+    if rot.is_null() || quat_x.is_null() || quat_y.is_null() || quat_z.is_null() || quat_w.is_null() {
+        return;
+    }
+    
+    unsafe {
+        let (x, y, z, w) = (*rot).get_quaternion();
+        *quat_x = x;
+        *quat_y = y;
+        *quat_z = z;
+        *quat_w = w;
+    }
+}
+
+/// Get Roll-Pitch-Yaw angles from Rotation
+#[no_mangle]
+pub extern "C" fn urdf_rotation_get_rpy(
+    rot: *const Rotation,
+    roll: *mut f64,
+    pitch: *mut f64,
+    yaw: *mut f64,
+) {
+    if rot.is_null() || roll.is_null() || pitch.is_null() || yaw.is_null() {
+        return;
+    }
+    
+    unsafe {
+        let (r, p, y) = (*rot).get_rpy();
+        *roll = r;
+        *pitch = p;
+        *yaw = y;
+    }
+}
+
+/// Set Rotation from quaternion components
+#[no_mangle]
+pub extern "C" fn urdf_rotation_set_from_quaternion(
+    rot: *mut Rotation,
+    quat_x: f64,
+    quat_y: f64,
+    quat_z: f64,
+    quat_w: f64,
+) {
+    if !rot.is_null() {
+        unsafe {
+            (*rot).set_from_quaternion(quat_x, quat_y, quat_z, quat_w);
+        }
+    }
+}
+
+/// Set Rotation from Roll-Pitch-Yaw angles
+#[no_mangle]
+pub extern "C" fn urdf_rotation_set_from_rpy(rot: *mut Rotation, roll: f64, pitch: f64, yaw: f64) {
+    if !rot.is_null() {
+        unsafe {
+            (*rot).set_from_rpy(roll, pitch, yaw);
+        }
+    }
+}
+
+/// Initialize Rotation from string "roll pitch yaw"
+/// Returns 0 on success, 1 on error
+#[no_mangle]
+pub extern "C" fn urdf_rotation_init(rot: *mut Rotation, rotation_str: *const c_char) -> c_int {
+    if rot.is_null() || rotation_str.is_null() {
+        return 1;
+    }
+    
+    unsafe {
+        let c_str = match CStr::from_ptr(rotation_str).to_str() {
+            Ok(s) => s,
+            Err(_) => return 1,
+        };
+        
+        match (*rot).init(c_str) {
+            Ok(_) => 0,
+            Err(_) => 1,
+        }
+    }
+}
+
+/// Normalize the Rotation quaternion
+#[no_mangle]
+pub extern "C" fn urdf_rotation_normalize(rot: *mut Rotation) {
+    if !rot.is_null() {
+        unsafe {
+            (*rot).normalize();
+        }
+    }
+}
+
+/// Get inverse of Rotation
+#[no_mangle]
+pub extern "C" fn urdf_rotation_get_inverse(rot: *const Rotation) -> Rotation {
+    if rot.is_null() {
+        return Rotation::identity();
+    }
+    
+    unsafe { (*rot).get_inverse() }
+}
+
+/// Multiply two Rotations (quaternion multiplication)
+#[no_mangle]
+pub extern "C" fn urdf_rotation_multiply(r1: Rotation, r2: Rotation) -> Rotation {
+    r1 * r2
+}
+
+/// Rotate a Vector3 by a Rotation
+#[no_mangle]
+pub extern "C" fn urdf_rotation_multiply_vector3(rot: Rotation, vec: Vector3) -> Vector3 {
+    rot * vec
+}
+
+/// Create a new Pose with specified position and rotation
+#[no_mangle]
+pub extern "C" fn urdf_pose_new(position: Vector3, rotation: Rotation) -> Pose {
+    Pose::new(position, rotation)
+}
+
+/// Create identity Pose (zero position, no rotation)
+#[no_mangle]
+pub extern "C" fn urdf_pose_identity() -> Pose {
+    Pose::identity()
+}
+
+/// Clear Pose to identity
+#[no_mangle]
+pub extern "C" fn urdf_pose_clear(pose: *mut Pose) {
+    if !pose.is_null() {
+        unsafe {
+            (*pose).clear();
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

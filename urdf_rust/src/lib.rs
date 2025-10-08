@@ -47,7 +47,7 @@
 //! }
 //! ```
 
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
 
 pub mod ffi;
@@ -55,12 +55,14 @@ pub mod model;
 pub mod parser;
 pub mod utils;
 pub mod error;
+pub mod pose;
 
 // Re-export main types for convenience
 pub use model::{Robot, Link, Joint, Material, Geometry};
 pub use parser::{parse_urdf_string};
 pub use utils::{parse_vector3};
 pub use error::{UrdfError, UrdfResult};
+pub use pose::{Vector3, Rotation, Pose};
 
 /// Version information matching the C++ urdfdom version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

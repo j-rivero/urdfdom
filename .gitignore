@@ -1,3 +1,66 @@
 *.pyc
 build/
 *~
+
+# ======================
+# RUST BUILD ARTIFACTS
+# ======================
+
+# Cargo build outputs
+**/target/
+**/*.rs.bk
+**/Cargo.lock
+
+# ======================
+# C++ BUILD ARTIFACTS  
+# ======================
+
+# CMake generated files
+**/cmake_vars.cmake
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/Makefile
+**/compile_commands.json
+**/install_manifest.txt
+**/DartConfiguration.tcl
+**/CTestTestfile.cmake
+**/uninstall.cmake
+
+# Build directories
+install/
+
+# Compiled binaries
+*.o
+*.so
+*.so.*
+*.a
+*.exe
+
+# ======================
+# TEMPORARY TEST FILES
+# ======================
+
+# Migration test files
+*_migration_test
+*_migration_test.cpp
+
+# ======================
+# IDE AND SYSTEM FILES
+# ======================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ======================
+# KEEP IMPORTANT FILES
+# ======================
+
+# These generated files should be committed
+!urdf_rust/include/urdf_rust.h

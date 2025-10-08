@@ -33,5 +33,33 @@ documentation = true
 [parse]
 parse_deps = true
 
+[export]
+include = [
+  "Vector3",
+  "Rotation", 
+  "Pose",
+  "urdf_vector3_new",
+  "urdf_vector3_zero",
+  "urdf_vector3_clear",
+  "urdf_vector3_init",
+  "urdf_vector3_add",
+  "urdf_rotation_new",
+  "urdf_rotation_identity",
+  "urdf_rotation_clear",
+  "urdf_rotation_get_quaternion",
+  "urdf_rotation_get_rpy",
+  "urdf_rotation_set_from_quaternion",
+  "urdf_rotation_set_from_rpy", 
+  "urdf_rotation_init",
+  "urdf_rotation_normalize",
+  "urdf_rotation_get_inverse",
+  "urdf_rotation_multiply",
+  "urdf_rotation_multiply_vector3",
+  "urdf_pose_new",
+  "urdf_pose_identity", 
+  "urdf_pose_clear",
+  "urdf_parse_vector3"
+]
+
 [fn]
 rename_args = "snake_case"
