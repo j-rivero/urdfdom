@@ -210,6 +210,12 @@ endif()
 
 add_subdirectory(urdf_parser)
 
+# Add migration tests if building with testing enabled
+if(BUILD_TESTING AND BUILD_RUST_BINDINGS)
+  add_subdirectory(migration_tests)
+  message(STATUS "Migration tests enabled - build with 'make run_migration_tests'")
+endif()
+
 set(PKG_NAME ${PROJECT_NAME})
 set(PKG_LIBRARIES urdfdom_sensor urdfdom_model urdfdom_world)
 if(BUILD_RUST_BINDINGS AND PKG_RUST_LIBRARIES)
